@@ -32,15 +32,28 @@ uint32_t AppBuff[APPBUFF_SIZE];
 int32_t BIAShowResult(uint32_t *pData, uint32_t DataCount)
 {
   float freq;
+	float resistance;
+	float capacitance;
 
   fImpPol_Type *pImp = (fImpPol_Type*)pData;
   AppBIACtrl(BIACTRL_GETFREQ, &freq);
+	//Calculate real Resistance
 
   printf("Freq:%.2f ", freq);
   /*Process data*/
   for(int i=0;i<DataCount;i++)
   {
+		float zr = pImp[i].Magnitude * cos(pImp[i].Phase);
+		float zi = pImp[i].Magnitude * sin(pImp[i].Phase);
     printf("RzMag: %f Ohm , RzPhase: %f \n",pImp[i].Magnitude,pImp[i].Phase*180/MATH_PI);
+		if(pImp[i].Phase < MATH_PI && pImp[i].Phase > 0)
+		{
+			printf("Resistance: %f Ohm, Inductance: %f uH\n", zr, (1/(2*MATH_PI*freq)*zi * 1e6)); 
+		}
+		else
+		{
+			printf("Resistance: %f Ohm, Capacitance: %f uF\n", zr, -1*(1/(2*MATH_PI*freq*zi) * 1e6));
+		}
   }
   return 0;
 }
